@@ -4,7 +4,7 @@
 
 ## 功能特点
 
-- 🎧 **智能语音播放**: 使用浏览器内置的语音合成API播放单词读音
+ - 🎧 **智能语音播放**: 默认使用免费在线词典接口获取真人发音, 无法获取时回退到浏览器内置的语音合成 API
 - ⌨️ **类似金山打字的输入体验**: 简洁直观的听写界面
 - 📊 **详细统计分析**: 实时显示正确率、进度等统计信息
 - 💾 **数据持久化**: 使用SQLite数据库保存学习记录和统计数据
@@ -76,7 +76,7 @@ word-dictation/
 - **后端**: Node.js + Express
 - **数据库**: SQLite3
 - **前端**: HTML5 + CSS3 + Vanilla JavaScript
-- **语音**: Web Speech API (speechSynthesis)
+ - **语音**: 免费词典接口音频 + Web Speech API (speechSynthesis)
 
 ## API 接口
 
@@ -94,7 +94,7 @@ word-dictation/
 - Safari 7+
 - Edge 14+
 
-*注：语音播放功能需要浏览器支持 Web Speech API*
+*注：当在线词典音频不可用时，将回退到浏览器提供的 Web Speech API*
 
 ## 开发计划
 
