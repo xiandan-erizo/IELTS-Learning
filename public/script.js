@@ -10,6 +10,7 @@ class WordDictationApp {
         this.selectedUnitName = '';
         this.isAnswerShown = false;
         this.pronunciationCache = new Map();
+        this.translationCache = new Map();
         
         // 移动端优化
         this.initMobileOptimizations();
@@ -97,6 +98,7 @@ class WordDictationApp {
         this.wordDisplay = document.getElementById('wordDisplay');
         this.currentWordDisplay = document.getElementById('currentWordDisplay');
         this.wordResult = document.getElementById('wordResult');
+        this.wordTranslation = document.getElementById('wordTranslation');
         this.audioSourceHint = document.getElementById('audioSourceHint');
 
         // Progress elements
@@ -465,7 +467,7 @@ class WordDictationApp {
         }, 2000);
     }
 
-    showAnswer() {
+    async showAnswer() {
         this.isAnswerShown = true;
         this.currentWordDisplay.textContent = this.currentWord;
         this.wordDisplay.style.display = 'block';
@@ -479,6 +481,29 @@ class WordDictationApp {
         } else {
             this.wordResult.textContent = `您的答案: ${userInput || '(未填写)'}`;
             this.wordResult.className = 'word-result feedback-incorrect';
+        }
+
+        this.wordTranslation.textContent = '翻译加载中...';
+        const translation = await this.getTranslation(this.currentWord);
+        this.wordTranslation.textContent = translation || '暂无翻译';
+    }
+
+    async getTranslation(word) {
+        if (this.translationCache.has(word)) {
+            return this.translationCache.get(word);
+        }
+
+        try {
+            const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|zh-CN`;
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Request failed');
+            const data = await response.json();
+            const text = data?.responseData?.translatedText || '';
+            this.translationCache.set(word, text);
+            return text;
+        } catch (err) {
+            console.error('Translation fetch failed', err);
+            return '';
         }
     }
 
