@@ -9,6 +9,7 @@ class WordDictationApp {
         this.currentUnit = null;
         this.selectedUnitName = '';
         this.isAnswerShown = false;
+        this.pronunciationCache = new Map();
         
         // 移动端优化
         this.initMobileOptimizations();
@@ -256,6 +257,12 @@ class WordDictationApp {
     }
 
     async playWithOnlineAudio() {
+        if (this.pronunciationCache.has(this.currentWord)) {
+            const url = this.pronunciationCache.get(this.currentWord);
+            const audio = new Audio(url);
+            return await this.playAudioObject(audio);
+        }
+
         const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${this.currentWord}`;
 
         try {
@@ -267,29 +274,46 @@ class WordDictationApp {
             const entry = phonetics.find(p => p.audio);
             if (!entry || !entry.audio) return false;
 
+            this.pronunciationCache.set(this.currentWord, entry.audio);
             const audio = new Audio(entry.audio);
-            return await new Promise(resolve => {
-                this.playButton.disabled = true;
-                this.replayButton.disabled = true;
-
-                audio.onended = () => {
-                    this.playButton.disabled = false;
-                    this.replayButton.disabled = false;
-                    resolve(true);
-                };
-
-                audio.onerror = () => {
-                    this.playButton.disabled = false;
-                    this.replayButton.disabled = false;
-                    resolve(false);
-                };
-
-                audio.play().catch(() => resolve(false));
-            });
+            return await this.playAudioObject(audio);
         } catch (err) {
             console.error('Online audio fetch failed', err);
             return false;
         }
+    }
+
+    playAudioObject(audio) {
+        return new Promise(resolve => {
+            this.playButton.disabled = true;
+            this.replayButton.disabled = true;
+
+            const resetButtons = () => {
+                this.playButton.disabled = false;
+                this.replayButton.disabled = false;
+            };
+
+            audio.onended = () => {
+                resetButtons();
+                resolve(true);
+            };
+
+            audio.onerror = () => {
+                resetButtons();
+                resolve(false);
+            };
+
+            try {
+                audio.currentTime = 0;
+                audio.play().catch(() => {
+                    resetButtons();
+                    resolve(false);
+                });
+            } catch {
+                resetButtons();
+                resolve(false);
+            }
+        });
     }
 
     playWithLocalTTS() {
