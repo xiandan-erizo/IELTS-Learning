@@ -10,10 +10,55 @@ class WordDictationApp {
         this.selectedUnitName = '';
         this.isAnswerShown = false;
         
+        // 移动端优化
+        this.initMobileOptimizations();
+        
         this.initializeElements();
         this.bindEvents();
         this.initializeVoices();
         this.showMainMenu();
+    }
+
+    initMobileOptimizations() {
+        // 检测移动设备
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (this.isMobile) {
+            // 移动端特殊处理
+            document.body.classList.add('mobile');
+            
+            // 防止页面滚动
+            document.addEventListener('touchmove', (e) => {
+                if (e.target.closest('.unit-list, .history-list, .word-stats-list')) {
+                    return; // 允许列表滚动
+                }
+                e.preventDefault();
+            }, { passive: false });
+            
+            // 优化输入框体验
+            document.addEventListener('focusin', (e) => {
+                if (e.target.id === 'wordInput') {
+                    // 延迟滚动，等待键盘弹出
+                    setTimeout(() => {
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            });
+            
+            // 添加触觉反馈（如果支持）
+            if ('vibrate' in navigator) {
+                this.addHapticFeedback();
+            }
+        }
+    }
+
+    addHapticFeedback() {
+        // 为按钮添加触觉反馈
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.btn, .play-button, .unit-item')) {
+                navigator.vibrate(10); // 轻微震动
+            }
+        });
     }
 
     initializeElements() {

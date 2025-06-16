@@ -594,35 +594,60 @@ body {
 /* Responsive */
 @media (max-width: 768px) {
     .container {
-        padding: 15px;
-        justify-content: flex-start; /* 在小屏幕上使用顶部对齐 */
+        padding: 10px;
+        justify-content: flex-start;
     }
     
     .header {
-        margin-bottom: 30px; /* 在小屏幕上增加一些间距 */
+        margin-bottom: 20px;
     }
     
     .header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .main-menu {
-        min-height: 50vh; /* 在小屏幕上减少最小高度 */
+        min-height: 40vh;
     }
     
-    .menu-card, .stats-card, .history-card, .word-card, .result-card {
+    .menu-card, .stats-card, .history-card, .word-card, .result-card, .unit-card {
         padding: 20px;
+        margin-bottom: 15px;
     }
     
-    .final-stats {
+    /* 主菜单按钮 */
+    .menu-options {
+        gap: 12px;
+    }
+    
+    .btn-large {
+        padding: 15px 25px;
+        font-size: 1rem;
+    }
+    
+    /* 单元选择优化 */
+    .unit-list {
+        max-height: 50vh;
+    }
+    
+    .unit-item {
         flex-direction: column;
-        gap: 20px;
+        align-items: stretch;
+        gap: 10px;
+        padding: 15px;
     }
     
-    .control-buttons {
+    .unit-item .btn {
+        align-self: center;
+        min-width: 120px;
+    }
+    
+    .unit-actions {
         flex-direction: column;
+        gap: 10px;
     }
     
+    /* 练习页面优化 */
     .practice-header {
         flex-direction: column;
         gap: 15px;
@@ -630,5 +655,265 @@ body {
     
     .progress-container {
         margin-right: 0;
+    }
+    
+    .word-audio {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .play-button {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+    
+    #wordInput {
+        font-size: 1.1rem;
+        padding: 15px;
+    }
+    
+    .control-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .control-buttons .btn {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    /* 统计页面优化 */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .final-stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .session-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    /* 单词统计优化 */
+    .stats-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .stats-filters select {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .unit-stats-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .word-stats-header {
+        display: none; /* 在手机上隐藏表头 */
+    }
+    
+    .word-stat-item {
+        display: block;
+        padding: 15px;
+        margin-bottom: 12px;
+    }
+    
+    .word-stat-item > div {
+        margin-bottom: 8px;
+    }
+    
+    .word-stat-word {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    
+    .word-stat-accuracy {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+    
+    .word-stat-accuracy::before {
+        content: "正确率: ";
+        font-weight: normal;
+        color: #718096;
+    }
+    
+    .word-stat-attempts::before {
+        content: "练习次数: ";
+        font-weight: normal;
+        color: #718096;
+    }
+    
+    .word-stat-date::before {
+        content: "最近练习: ";
+        font-weight: normal;
+        color: #718096;
+    }
+    
+    /* 历史记录优化 */
+    .history-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .history-accuracy {
+        align-self: center;
+        font-size: 1.5rem;
+    }
+    
+    /* 结果页面优化 */
+    .result-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+    .container {
+        padding: 8px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .menu-card, .stats-card, .history-card, .word-card, .result-card, .unit-card {
+        padding: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .play-button {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    #wordInput {
+        font-size: 1rem;
+        padding: 12px;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-large {
+        padding: 15px 25px;
+        font-size: 1rem;
+    }
+}
+
+/* 移动端触摸优化 */
+@media (max-width: 768px) {
+    /* 触摸友好的按钮 */
+    .btn {
+        min-height: 44px; /* iOS推荐的最小触摸区域 */
+        touch-action: manipulation; /* 禁用双击缩放 */
+    }
+    
+    .play-button {
+        min-height: 70px;
+        min-width: 70px;
+    }
+    
+    /* 输入框优化 */
+    #wordInput {
+        -webkit-appearance: none;
+        border-radius: 12px;
+        font-size: 16px; /* 防止iOS自动缩放 */
+    }
+    
+    /* 列表项触摸优化 */
+    .unit-item, .history-item {
+        min-height: 60px;
+        touch-action: manipulation;
+    }
+    
+    /* 改善滚动体验 */
+    .unit-list, .history-list, .word-stats-list {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 选择框优化 */
+    .stats-filters select {
+        min-height: 44px;
+        font-size: 16px; /* 防止iOS自动缩放 */
+    }
+}
+
+/* 横屏适配 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .main-menu {
+        min-height: 30vh;
+    }
+    
+    .header {
+        margin-bottom: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.6rem;
+    }
+    
+    .word-audio {
+        flex-direction: row;
+        gap: 20px;
+    }
+    
+    .play-button {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* 高分辨率屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .play-button {
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* 暗黑模式适配 */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    }
+    
+    .menu-card, .stats-card, .history-card, .word-card, .result-card, .unit-card {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .btn-secondary {
+        background: #4a5568;
+        color: #e2e8f0;
+        border-color: #718096;
+    }
+    
+    #wordInput {
+        background: #4a5568;
+        color: #e2e8f0;
+        border-color: #718096;
     }
 }
