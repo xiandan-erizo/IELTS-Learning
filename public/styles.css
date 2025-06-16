@@ -40,6 +40,14 @@ body {
     opacity: 0.9;
 }
 
+.auth-controls {
+    margin-top: 10px;
+}
+
+.auth-controls button {
+    margin-left: 5px;
+}
+
 /* Cards */
 .menu-card, .stats-card, .history-card, .word-card, .result-card {
     background: white;
