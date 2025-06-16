@@ -40,6 +40,14 @@ body {
     opacity: 0.9;
 }
 
+.auth-controls {
+    margin-top: 10px;
+}
+
+.auth-controls button {
+    margin-left: 5px;
+}
+
 /* Cards */
 .menu-card, .stats-card, .history-card, .word-card, .result-card {
     background: white;
@@ -283,6 +291,12 @@ body {
 .word-result {
     font-size: 1.1rem;
     font-weight: 600;
+}
+
+.word-translation {
+    font-size: 1rem;
+    color: #2d3748;
+    margin-top: 5px;
 }
 
 /* Session Stats */

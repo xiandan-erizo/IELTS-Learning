@@ -9,6 +9,8 @@ class WordDictationApp {
         this.currentUnit = null;
         this.selectedUnitName = '';
         this.isAnswerShown = false;
+        this.pronunciationCache = new Map();
+        this.translationCache = new Map();
         
         // 移动端优化
         this.initMobileOptimizations();
@@ -16,7 +18,7 @@ class WordDictationApp {
         this.initializeElements();
         this.bindEvents();
         this.initializeVoices();
-        this.showMainMenu();
+        this.checkAuth();
     }
 
     initMobileOptimizations() {
@@ -72,6 +74,11 @@ class WordDictationApp {
         this.resultSection = document.getElementById('resultSection');
         this.loading = document.getElementById('loading');
 
+        // Auth elements
+        this.loginBtn = document.getElementById('loginBtn');
+        this.logoutBtn = document.getElementById('logoutBtn');
+        this.userInfo = document.getElementById('userInfo');
+
         // Main menu buttons
         this.startPracticeBtn = document.getElementById('startPracticeBtn');
         this.viewStatsBtn = document.getElementById('viewStatsBtn');
@@ -96,6 +103,7 @@ class WordDictationApp {
         this.wordDisplay = document.getElementById('wordDisplay');
         this.currentWordDisplay = document.getElementById('currentWordDisplay');
         this.wordResult = document.getElementById('wordResult');
+        this.wordTranslation = document.getElementById('wordTranslation');
         this.audioSourceHint = document.getElementById('audioSourceHint');
 
         // Progress elements
@@ -135,6 +143,14 @@ class WordDictationApp {
     }
 
     bindEvents() {
+        this.loginBtn.addEventListener('click', () => {
+            window.location.href = '/auth/google';
+        });
+        this.logoutBtn.addEventListener('click', async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            this.checkAuth();
+        });
+
         // Main menu
         this.startPracticeBtn.addEventListener('click', () => this.startPractice());
         this.viewStatsBtn.addEventListener('click', () => this.showStats());
@@ -194,8 +210,38 @@ class WordDictationApp {
         this.showSection(this.mainMenu);
     }
 
+    enableMainMenu(enabled) {
+        const buttons = [
+            this.startPracticeBtn,
+            this.viewStatsBtn,
+            this.viewHistoryBtn,
+            this.selectUnitBtn,
+            this.wordStatsBtn
+        ];
+        buttons.forEach(btn => btn.disabled = !enabled);
+    }
+
     showLoading(show) {
         this.loading.style.display = show ? 'flex' : 'none';
+    }
+
+    async checkAuth() {
+        try {
+            const res = await fetch('/api/user');
+            if (!res.ok) throw new Error('unauth');
+            const data = await res.json();
+            this.userInfo.textContent = data.displayName;
+            this.loginBtn.style.display = 'none';
+            this.logoutBtn.style.display = 'inline-block';
+            this.enableMainMenu(true);
+            this.showMainMenu();
+        } catch (e) {
+            this.userInfo.textContent = '';
+            this.loginBtn.style.display = 'inline-block';
+            this.logoutBtn.style.display = 'none';
+            this.enableMainMenu(false);
+            this.showMainMenu();
+        }
     }
 
     async startPractice(unitName) {
@@ -266,6 +312,12 @@ class WordDictationApp {
     }
 
     async playWithOnlineAudio() {
+        if (this.pronunciationCache.has(this.currentWord)) {
+            const url = this.pronunciationCache.get(this.currentWord);
+            const audio = new Audio(url);
+            return await this.playAudioObject(audio);
+        }
+
         const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${this.currentWord}`;
 
         try {
@@ -277,6 +329,7 @@ class WordDictationApp {
             const entry = phonetics.find(p => p.audio);
             if (!entry || !entry.audio) return false;
 
+            this.pronunciationCache.set(this.currentWord, entry.audio);
             const audio = new Audio(entry.audio);
             if (this.audioSourceHint) {
                 this.audioSourceHint.textContent = '在线音频播放';
@@ -305,10 +358,44 @@ class WordDictationApp {
 
                 audio.play().catch(() => resolve(false));
             });
+            return await this.playAudioObject(audio);
         } catch (err) {
             console.error('Online audio fetch failed', err);
             return false;
         }
+    }
+
+    playAudioObject(audio) {
+        return new Promise(resolve => {
+            this.playButton.disabled = true;
+            this.replayButton.disabled = true;
+
+            const resetButtons = () => {
+                this.playButton.disabled = false;
+                this.replayButton.disabled = false;
+            };
+
+            audio.onended = () => {
+                resetButtons();
+                resolve(true);
+            };
+
+            audio.onerror = () => {
+                resetButtons();
+                resolve(false);
+            };
+
+            try {
+                audio.currentTime = 0;
+                audio.play().catch(() => {
+                    resetButtons();
+                    resolve(false);
+                });
+            } catch {
+                resetButtons();
+                resolve(false);
+            }
+        });
     }
 
     playWithLocalTTS() {
@@ -423,7 +510,7 @@ class WordDictationApp {
         }, 2000);
     }
 
-    showAnswer() {
+    async showAnswer() {
         this.isAnswerShown = true;
         this.currentWordDisplay.textContent = this.currentWord;
         this.wordDisplay.style.display = 'block';
@@ -437,6 +524,29 @@ class WordDictationApp {
         } else {
             this.wordResult.textContent = `您的答案: ${userInput || '(未填写)'}`;
             this.wordResult.className = 'word-result feedback-incorrect';
+        }
+
+        this.wordTranslation.textContent = '翻译加载中...';
+        const translation = await this.getTranslation(this.currentWord);
+        this.wordTranslation.textContent = translation || '暂无翻译';
+    }
+
+    async getTranslation(word) {
+        if (this.translationCache.has(word)) {
+            return this.translationCache.get(word);
+        }
+
+        try {
+            const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|zh-CN`;
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Request failed');
+            const data = await response.json();
+            const text = data?.responseData?.translatedText || '';
+            this.translationCache.set(word, text);
+            return text;
+        } catch (err) {
+            console.error('Translation fetch failed', err);
+            return '';
         }
     }
 

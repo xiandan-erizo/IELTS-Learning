@@ -14,6 +14,11 @@
     <div class="container">
         <header class="header">
             <h1>🎧 雅思单词听写练习</h1>
+            <div class="auth-controls">
+                <span id="userInfo"></span>
+                <button class="btn" id="loginBtn">使用 Google 登录</button>
+                <button class="btn" id="logoutBtn" style="display:none;">退出</button>
+            </div>
         </header>
 
         <!-- 主菜单 -->
@@ -173,6 +178,7 @@
                 <div class="word-display" id="wordDisplay" style="display: none;">
                     <div class="current-word" id="currentWordDisplay"></div>
                     <div class="word-result" id="wordResult"></div>
+                    <div class="word-translation" id="wordTranslation"></div>
                 </div>
             </div>
 
