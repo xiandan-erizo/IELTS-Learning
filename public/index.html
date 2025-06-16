@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雅思单词听写练习</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎧 雅思单词听写练习</h1>
+        </header>
+
+        <!-- 主菜单 -->
+        <div class="main-menu" id="mainMenu">
+            <div class="menu-card">
+                <h2>开始练习</h2>
+                <div class="menu-options">
+                    <button class="btn btn-primary btn-large" id="startPracticeBtn">
+                        🎯 开始听写练习
+                    </button>
+                    <button class="btn btn-secondary" id="viewStatsBtn">
+                        📊 查看统计
+                    </button>
+                    <button class="btn btn-secondary" id="viewHistoryBtn">
+                        📚 历史记录
+                    </button>
+                    <button class="btn btn-secondary" id="selectUnitBtn">
+                        📖 选择单元
+                    </button>
+                    <button class="btn btn-secondary" id="wordStatsBtn">
+                        📈 单词统计
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计页面 -->
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <div class="stats-card">
+                <h2>📊 学习统计</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalSessions">0</div>
+                        <div class="stat-label">练习次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="avgAccuracy">0%</div>
+                        <div class="stat-label">平均正确率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalWords">0</div>
+                        <div class="stat-label">练习单词数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalCorrect">0</div>
+                        <div class="stat-label">正确单词数</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" id="backFromStatsBtn">返回主菜单</button>
+            </div>
+        </div>
+
+        <!-- 单元选择页面 -->
+        <div class="unit-selection" id="unitSelection" style="display: none;">
+            <div class="unit-card">
+                <h2>📖 选择练习单元</h2>
+                <div class="unit-list" id="unitList">
+                    <!-- 单元列表将在这里动态加载 -->
+                </div>
+                <div class="unit-actions">
+                    <button class="btn btn-primary" id="practiceAllBtn">练习全部单词</button>
+                    <button class="btn btn-secondary" id="backFromUnitBtn">返回主菜单</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 单词统计页面 -->
+        <div class="word-stats-section" id="wordStatsSection" style="display: none;">
+            <div class="stats-card">
+                <h2>📈 单词学习统计</h2>
+                
+                <!-- 单元统计 -->
+                <div class="unit-stats-container">
+                    <h3>单元统计</h3>
+                    <div class="unit-stats-list" id="unitStatsList">
+                        <!-- 单元统计将在这里动态加载 -->
+                    </div>
+                </div>
+
+                <!-- 单词详细统计 -->
+                <div class="word-stats-container">
+                    <h3>单词详细统计</h3>
+                    <div class="stats-filters">
+                        <select id="unitFilter">
+                            <option value="">所有单元</option>
+                        </select>
+                        <select id="sortBy">
+                            <option value="accuracy_rate">按正确率</option>
+                            <option value="total_attempts">按练习次数</option>
+                            <option value="word">按单词</option>
+                            <option value="last_practiced">按最近练习</option>
+                        </select>
+                        <select id="sortOrder">
+                            <option value="asc">升序</option>
+                            <option value="desc">降序</option>
+                        </select>
+                        <button class="btn btn-secondary" id="refreshStatsBtn">刷新</button>
+                    </div>
+                    <div class="word-stats-list" id="wordStatsList">
+                        <!-- 单词统计将在这里动态加载 -->
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="backFromWordStatsBtn">返回主菜单</button>
+            </div>
+        </div>
+
+        <!-- 历史记录页面 -->
+        <div class="history-section" id="historySection" style="display: none;">
+            <div class="history-card">
+                <h2>📚 练习历史</h2>
+                <div class="history-list" id="historyList">
+                    <!-- 历史记录将在这里动态加载 -->
+                </div>
+                <button class="btn btn-secondary" id="backFromHistoryBtn">返回主菜单</button>
+            </div>
+        </div>
+
+        <!-- 听写练习区域 -->
+        <div class="dictation-section" id="dictationSection" style="display: none;">
+            <div class="practice-header">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0 / 0</div>
+                </div>
+                <button class="btn btn-secondary btn-small" id="exitPracticeBtn">退出练习</button>
+            </div>
+
+            <div class="word-card">
+                <div class="word-audio">
+                    <button class="play-button" id="playButton">
+                        <span class="play-icon">🔊</span>
+                    </button>
+                    <div class="audio-info">
+                        <div class="audio-text">点击播放单词读音</div>
+                        <div class="audio-hint">听到单词后在下方输入</div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <input type="text" 
+                           id="wordInput" 
+                           placeholder="请输入听到的单词..." 
+                           autocomplete="off" 
+                           spellcheck="false">
+                    <div class="input-feedback" id="inputFeedback"></div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="btn btn-secondary" id="replayButton">🔄 重播</button>
+                    <button class="btn btn-primary" id="submitButton">✓ 提交</button>
+                    <button class="btn btn-warning" id="showAnswerButton">👁 显示答案</button>
+                </div>
+
+                <div class="word-display" id="wordDisplay" style="display: none;">
+                    <div class="current-word" id="currentWordDisplay"></div>
+                    <div class="word-result" id="wordResult"></div>
+                </div>
+            </div>
+
+            <div class="session-stats">
+                <div class="stat-item">
+                    <span class="stat-label">正确率</span>
+                    <span class="stat-value" id="currentAccuracy">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">已完成</span>
+                    <span class="stat-value" id="completedCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">剩余</span>
+                    <span class="stat-value" id="remainingCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 练习完成页面 -->
+        <div class="result-section" id="resultSection" style="display: none;">
+            <div class="result-card">
+                <h2>🎉 练习完成！</h2>
+                <div class="final-stats">
+                    <div class="final-stat">
+                        <div class="final-stat-number" id="finalAccuracy">0%</div>
+                        <div class="final-stat-label">正确率</div>
+                    </div>
+                    <div class="final-stat">
+                        <div class="final-stat-number" id="finalCorrect">0</div>
+                        <div class="final-stat-label">正确数</div>
+                    </div>
+                    <div class="final-stat">
+                        <div class="final-stat-number" id="finalTotal">0</div>
+                        <div class="final-stat-label">总数</div>
+                    </div>
+                </div>
+                <div class="result-actions">
+                    <button class="btn btn-primary" id="startNewPracticeBtn">再次练习</button>
+                    <button class="btn btn-secondary" id="backToMenuBtn">返回主菜单</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载提示 -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">加载中...</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
