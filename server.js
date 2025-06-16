@@ -18,8 +18,13 @@ const db = new sqlite3.Database('dictation.db');
 
 // 创建表
 db.serialize(() => {
+    // 删除旧表（如果存在）
+    db.run('DROP TABLE IF EXISTS word_attempts');
+    db.run('DROP TABLE IF EXISTS user_sessions');
+    db.run('DROP TABLE IF EXISTS word_stats');
+    
     // 用户练习记录表
-    db.run(`CREATE TABLE IF NOT EXISTS user_sessions (
+    db.run(`CREATE TABLE user_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT UNIQUE,
         unit_name TEXT,
@@ -31,7 +36,7 @@ db.serialize(() => {
     )`);
 
     // 单词练习详情表
-    db.run(`CREATE TABLE IF NOT EXISTS word_attempts (
+    db.run(`CREATE TABLE word_attempts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT,
         word TEXT,
@@ -44,7 +49,7 @@ db.serialize(() => {
     )`);
 
     // 单词统计表
-    db.run(`CREATE TABLE IF NOT EXISTS word_stats (
+    db.run(`CREATE TABLE word_stats (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         word TEXT,
         unit_name TEXT,
@@ -54,6 +59,8 @@ db.serialize(() => {
         last_practiced DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(word, unit_name)
     )`);
+    
+    console.log('Database tables created successfully');
 });
 
 // 读取单词本并按单元分组

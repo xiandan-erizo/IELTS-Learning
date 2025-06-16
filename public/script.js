@@ -6,6 +6,8 @@ class WordDictationApp {
         this.correctCount = 0;
         this.totalAttempts = 0;
         this.currentWord = '';
+        this.currentUnit = null;
+        this.selectedUnitName = '';
         this.isAnswerShown = false;
         
         this.initializeElements();
@@ -19,6 +21,8 @@ class WordDictationApp {
         this.mainMenu = document.getElementById('mainMenu');
         this.statsSection = document.getElementById('statsSection');
         this.historySection = document.getElementById('historySection');
+        this.unitSelection = document.getElementById('unitSelection');
+        this.wordStatsSection = document.getElementById('wordStatsSection');
         this.dictationSection = document.getElementById('dictationSection');
         this.resultSection = document.getElementById('resultSection');
         this.loading = document.getElementById('loading');
@@ -27,10 +31,14 @@ class WordDictationApp {
         this.startPracticeBtn = document.getElementById('startPracticeBtn');
         this.viewStatsBtn = document.getElementById('viewStatsBtn');
         this.viewHistoryBtn = document.getElementById('viewHistoryBtn');
+        this.selectUnitBtn = document.getElementById('selectUnitBtn');
+        this.wordStatsBtn = document.getElementById('wordStatsBtn');
 
         // Navigation buttons
         this.backFromStatsBtn = document.getElementById('backFromStatsBtn');
         this.backFromHistoryBtn = document.getElementById('backFromHistoryBtn');
+        this.backFromUnitBtn = document.getElementById('backFromUnitBtn');
+        this.backFromWordStatsBtn = document.getElementById('backFromWordStatsBtn');
         this.exitPracticeBtn = document.getElementById('exitPracticeBtn');
 
         // Practice elements
@@ -66,6 +74,18 @@ class WordDictationApp {
 
         // History
         this.historyList = document.getElementById('historyList');
+
+        // Unit selection elements
+        this.unitList = document.getElementById('unitList');
+        this.practiceAllBtn = document.getElementById('practiceAllBtn');
+
+        // Word stats elements
+        this.unitStatsList = document.getElementById('unitStatsList');
+        this.wordStatsList = document.getElementById('wordStatsList');
+        this.unitFilter = document.getElementById('unitFilter');
+        this.sortBy = document.getElementById('sortBy');
+        this.sortOrder = document.getElementById('sortOrder');
+        this.refreshStatsBtn = document.getElementById('refreshStatsBtn');
     }
 
     bindEvents() {
@@ -73,11 +93,24 @@ class WordDictationApp {
         this.startPracticeBtn.addEventListener('click', () => this.startPractice());
         this.viewStatsBtn.addEventListener('click', () => this.showStats());
         this.viewHistoryBtn.addEventListener('click', () => this.showHistory());
+        this.selectUnitBtn.addEventListener('click', () => this.showUnitSelection());
+        this.wordStatsBtn.addEventListener('click', () => this.showWordStats());
 
         // Navigation
         this.backFromStatsBtn.addEventListener('click', () => this.showMainMenu());
         this.backFromHistoryBtn.addEventListener('click', () => this.showMainMenu());
+        this.backFromUnitBtn.addEventListener('click', () => this.showMainMenu());
+        this.backFromWordStatsBtn.addEventListener('click', () => this.showMainMenu());
         this.exitPracticeBtn.addEventListener('click', () => this.showMainMenu());
+
+        // Unit selection
+        this.practiceAllBtn.addEventListener('click', () => this.startPractice());
+
+        // Word stats
+        this.refreshStatsBtn.addEventListener('click', () => this.loadWordStats());
+        this.unitFilter.addEventListener('change', () => this.loadWordStats());
+        this.sortBy.addEventListener('change', () => this.loadWordStats());
+        this.sortOrder.addEventListener('change', () => this.loadWordStats());
 
         // Practice controls
         this.playButton.addEventListener('click', () => this.playCurrentWord());
@@ -105,7 +138,8 @@ class WordDictationApp {
 
     showSection(sectionElement) {
         const sections = [this.mainMenu, this.statsSection, this.historySection, 
-                         this.dictationSection, this.resultSection];
+                         this.unitSelection, this.wordStatsSection, this.dictationSection, 
+                         this.resultSection];
         sections.forEach(section => section.style.display = 'none');
         sectionElement.style.display = 'block';
     }
@@ -118,12 +152,13 @@ class WordDictationApp {
         this.loading.style.display = show ? 'flex' : 'none';
     }
 
-    async startPractice() {
+    async startPractice(unitName) {
         this.showLoading(true);
         try {
             const response = await fetch('/api/start-session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ unitName: unitName || this.selectedUnitName })
             });
 
             if (!response.ok) {
@@ -255,6 +290,7 @@ class WordDictationApp {
                 body: JSON.stringify({
                     sessionId: this.currentSession,
                     word: this.currentWord,
+                    unitName: this.selectedUnitName,
                     userInput: userInput,
                     isCorrect: isCorrect
                 })
@@ -400,6 +436,7 @@ class WordDictationApp {
                     <div class="history-info">
                         <div class="history-date">${date}</div>
                         <div class="history-stats">
+                            单元: ${session.unit_name || '全部单词'}<br>
                             ${session.correct_words} / ${session.total_words} 个单词
                         </div>
                     </div>
@@ -407,6 +444,161 @@ class WordDictationApp {
                 </div>
             `;
         }).join('');
+    }
+
+    async showUnitSelection() {
+        this.showLoading(true);
+        try {
+            const response = await fetch('/api/units');
+            if (!response.ok) {
+                throw new Error('Failed to fetch units');
+            }
+
+            const data = await response.json();
+            this.renderUnitList(data.units);
+            this.showSection(this.unitSelection);
+        } catch (error) {
+            console.error('Error fetching units:', error);
+            alert('获取单元列表失败');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    renderUnitList(units) {
+        if (!units || units.length === 0) {
+            this.unitList.innerHTML = '<div style="text-align: center; color: #718096; padding: 40px;">暂无可用单元</div>';
+            return;
+        }
+
+        this.unitList.innerHTML = units.map(unit => `
+            <div class="unit-item" data-unit-name="${unit.name}">
+                <div class="unit-info">
+                    <div class="unit-name">${unit.name}</div>
+                    <div class="unit-word-count">${unit.wordCount} 个单词</div>
+                </div>
+                <button class="btn btn-primary btn-small" onclick="app.startUnitPractice('${unit.name}')">
+                    开始练习
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async startUnitPractice(unitName) {
+        this.selectedUnitName = unitName;
+        this.startPractice(unitName);
+    }
+
+    async showWordStats() {
+        this.showLoading(true);
+        try {
+            await Promise.all([
+                this.loadUnitStats(),
+                this.loadWordStats(),
+                this.loadUnitsForFilter()
+            ]);
+            this.showSection(this.wordStatsSection);
+        } catch (error) {
+            console.error('Error loading word stats:', error);
+            alert('获取统计数据失败');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async loadUnitStats() {
+        const response = await fetch('/api/unit-stats');
+        if (!response.ok) {
+            throw new Error('Failed to fetch unit stats');
+        }
+
+        const data = await response.json();
+        this.renderUnitStats(data);
+    }
+
+    renderUnitStats(unitStats) {
+        if (!unitStats || unitStats.length === 0) {
+            this.unitStatsList.innerHTML = '<div style="text-align: center; color: #718096;">暂无统计数据</div>';
+            return;
+        }
+
+        this.unitStatsList.innerHTML = unitStats.map(unit => `
+            <div class="unit-stat-item">
+                <div class="unit-stat-name">${unit.unit_name}</div>
+                <div class="unit-stat-details">
+                    平均正确率: ${Math.round(unit.avg_accuracy || 0)}%<br>
+                    练习单词数: ${unit.total_words}<br>
+                    总练习次数: ${unit.total_attempts}<br>
+                    最近练习: ${unit.last_practiced ? new Date(unit.last_practiced).toLocaleDateString('zh-CN') : '未练习'}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async loadWordStats() {
+        const unit = this.unitFilter.value;
+        const sortBy = this.sortBy.value;
+        const order = this.sortOrder.value;
+        
+        const params = new URLSearchParams();
+        if (unit) params.append('unit', unit);
+        params.append('sortBy', sortBy);
+        params.append('order', order);
+
+        const response = await fetch(`/api/word-stats?${params}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch word stats');
+        }
+
+        const data = await response.json();
+        this.renderWordStats(data);
+    }
+
+    renderWordStats(wordStats) {
+        if (!wordStats || wordStats.length === 0) {
+            this.wordStatsList.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">暂无统计数据</div>';
+            return;
+        }
+
+        const header = `
+            <div class="word-stats-header">
+                <div>单词</div>
+                <div>正确率</div>
+                <div>练习次数</div>
+                <div>正确次数</div>
+                <div>最近练习</div>
+            </div>
+        `;
+
+        const items = wordStats.map(word => {
+            const accuracy = Math.round(word.accuracy_rate || 0);
+            let accuracyClass = 'medium';
+            if (accuracy >= 80) accuracyClass = 'high';
+            else if (accuracy < 60) accuracyClass = 'low';
+
+            return `
+                <div class="word-stat-item">
+                    <div class="word-stat-word">${word.word}</div>
+                    <div class="word-stat-accuracy ${accuracyClass}">${accuracy}%</div>
+                    <div class="word-stat-attempts">${word.total_attempts}</div>
+                    <div class="word-stat-attempts">${word.correct_attempts}</div>
+                    <div class="word-stat-date">${new Date(word.last_practiced).toLocaleDateString('zh-CN')}</div>
+                </div>
+            `;
+        }).join('');
+
+        this.wordStatsList.innerHTML = header + items;
+    }
+
+    async loadUnitsForFilter() {
+        const response = await fetch('/api/units');
+        if (!response.ok) {
+            throw new Error('Failed to fetch units');
+        }
+
+        const data = await response.json();
+        this.unitFilter.innerHTML = '<option value="">所有单元</option>' + 
+            data.units.map(unit => `<option value="${unit.name}">${unit.name}</option>`).join('');
     }
 
     initializeVoices() {
@@ -480,5 +672,5 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     // 初始化应用
-    new WordDictationApp();
+    window.app = new WordDictationApp();
 });
