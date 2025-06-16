@@ -18,7 +18,7 @@ class WordDictationApp {
         this.initializeElements();
         this.bindEvents();
         this.initializeVoices();
-        this.showMainMenu();
+        this.checkAuth();
     }
 
     initMobileOptimizations() {
@@ -73,6 +73,11 @@ class WordDictationApp {
         this.dictationSection = document.getElementById('dictationSection');
         this.resultSection = document.getElementById('resultSection');
         this.loading = document.getElementById('loading');
+
+        // Auth elements
+        this.loginBtn = document.getElementById('loginBtn');
+        this.logoutBtn = document.getElementById('logoutBtn');
+        this.userInfo = document.getElementById('userInfo');
 
         // Main menu buttons
         this.startPracticeBtn = document.getElementById('startPracticeBtn');
@@ -138,6 +143,14 @@ class WordDictationApp {
     }
 
     bindEvents() {
+        this.loginBtn.addEventListener('click', () => {
+            window.location.href = '/auth/google';
+        });
+        this.logoutBtn.addEventListener('click', async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            this.checkAuth();
+        });
+
         // Main menu
         this.startPracticeBtn.addEventListener('click', () => this.startPractice());
         this.viewStatsBtn.addEventListener('click', () => this.showStats());
@@ -197,8 +210,38 @@ class WordDictationApp {
         this.showSection(this.mainMenu);
     }
 
+    enableMainMenu(enabled) {
+        const buttons = [
+            this.startPracticeBtn,
+            this.viewStatsBtn,
+            this.viewHistoryBtn,
+            this.selectUnitBtn,
+            this.wordStatsBtn
+        ];
+        buttons.forEach(btn => btn.disabled = !enabled);
+    }
+
     showLoading(show) {
         this.loading.style.display = show ? 'flex' : 'none';
+    }
+
+    async checkAuth() {
+        try {
+            const res = await fetch('/api/user');
+            if (!res.ok) throw new Error('unauth');
+            const data = await res.json();
+            this.userInfo.textContent = data.displayName;
+            this.loginBtn.style.display = 'none';
+            this.logoutBtn.style.display = 'inline-block';
+            this.enableMainMenu(true);
+            this.showMainMenu();
+        } catch (e) {
+            this.userInfo.textContent = '';
+            this.loginBtn.style.display = 'inline-block';
+            this.logoutBtn.style.display = 'none';
+            this.enableMainMenu(false);
+            this.showMainMenu();
+        }
     }
 
     async startPractice(unitName) {

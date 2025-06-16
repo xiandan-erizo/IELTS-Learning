@@ -10,17 +10,29 @@
 - 💾 **数据持久化**: 使用SQLite数据库保存学习记录和统计数据
 - 📚 **历史记录查看**: 查看过往练习记录和趋势
 - 📱 **响应式设计**: 支持手机、平板、电脑等设备
+- 🔐 **Google 登录**: 支持第三方登录，用户数据相互隔离
 
 ## 快速开始
 
 1. 确保已安装 Node.js (版本 14 或更高)
 
-2. 启动应用:
+2. 安装依赖:
+   ```bash
+   npm install
+   ```
+
+3. 复制 `.env.example` 为 `.env`，并填写以下变量：
+   - `GOOGLE_CLIENT_ID`：Google OAuth 客户端 ID
+   - `GOOGLE_CLIENT_SECRET`：Google OAuth 客户端密钥
+   - `SESSION_SECRET`：用于会话加密的随机字符串
+   - `PORT`：*(可选)* 服务器端口，默认 3000
+
+4. 启动应用:
    ```bash
    npm start
    ```
 
-3. 打开浏览器访问: http://localhost:3000
+5. 打开浏览器访问: http://localhost:3000
 
 ## 单词本格式
 
