@@ -96,6 +96,7 @@ class WordDictationApp {
         this.wordDisplay = document.getElementById('wordDisplay');
         this.currentWordDisplay = document.getElementById('currentWordDisplay');
         this.wordResult = document.getElementById('wordResult');
+        this.audioSourceHint = document.getElementById('audioSourceHint');
 
         // Progress elements
         this.progressFill = document.getElementById('progressFill');
@@ -249,8 +250,17 @@ class WordDictationApp {
 
         // 尝试从在线词典获取音频
         const played = await this.playWithOnlineAudio();
-        if (!played) {
+        if (played) {
+            console.log('Playing online audio');
+            if (this.audioSourceHint) {
+                this.audioSourceHint.textContent = '在线音频播放';
+            }
+        } else {
             // 若获取失败则回退到浏览器内置TTS
+            console.log('Using browser voice');
+            if (this.audioSourceHint) {
+                this.audioSourceHint.textContent = '浏览器语音播放';
+            }
             this.playWithLocalTTS();
         }
     }
@@ -268,6 +278,9 @@ class WordDictationApp {
             if (!entry || !entry.audio) return false;
 
             const audio = new Audio(entry.audio);
+            if (this.audioSourceHint) {
+                this.audioSourceHint.textContent = '在线音频播放';
+            }
             return await new Promise(resolve => {
                 this.playButton.disabled = true;
                 this.replayButton.disabled = true;
@@ -275,12 +288,18 @@ class WordDictationApp {
                 audio.onended = () => {
                     this.playButton.disabled = false;
                     this.replayButton.disabled = false;
+                    if (this.audioSourceHint) {
+                        this.audioSourceHint.textContent = '听到单词后在下方输入';
+                    }
                     resolve(true);
                 };
 
                 audio.onerror = () => {
                     this.playButton.disabled = false;
                     this.replayButton.disabled = false;
+                    if (this.audioSourceHint) {
+                        this.audioSourceHint.textContent = '听到单词后在下方输入';
+                    }
                     resolve(false);
                 };
 
@@ -322,19 +341,28 @@ class WordDictationApp {
                 // 禁用播放按钮防止重复点击
                 this.playButton.disabled = true;
                 this.replayButton.disabled = true;
+                if (this.audioSourceHint) {
+                    this.audioSourceHint.textContent = '浏览器语音播放';
+                }
             };
-            
+
             utterance.onend = () => {
                 console.log('🔇 Speech ended');
                 // 重新启用播放按钮
                 this.playButton.disabled = false;
                 this.replayButton.disabled = false;
+                if (this.audioSourceHint) {
+                    this.audioSourceHint.textContent = '听到单词后在下方输入';
+                }
             };
-            
+
             utterance.onerror = (event) => {
                 console.error('🚫 Speech error:', event.error);
                 this.playButton.disabled = false;
                 this.replayButton.disabled = false;
+                if (this.audioSourceHint) {
+                    this.audioSourceHint.textContent = '听到单词后在下方输入';
+                }
                 
                 // 如果是网络错误，提供提示
                 if (event.error === 'network') {
