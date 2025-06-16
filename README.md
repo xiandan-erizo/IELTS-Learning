@@ -10,6 +10,7 @@
 - 💾 **数据持久化**: 使用SQLite数据库保存学习记录和统计数据
 - 📚 **历史记录查看**: 查看过往练习记录和趋势
 - 📱 **响应式设计**: 支持手机、平板、电脑等设备
+- 🔐 **Google 登录**: 支持第三方登录，用户数据相互隔离
 
 ## 快速开始
 
@@ -19,6 +20,11 @@
    ```bash
    npm start
    ```
+
+   启动前请设置以下环境变量用于 Google 登录：
+   - `GOOGLE_CLIENT_ID`：Google OAuth 客户端 ID
+   - `GOOGLE_CLIENT_SECRET`：Google OAuth 客户端密钥
+   - `SESSION_SECRET`：用于会话加密的随机字符串
 
 3. 打开浏览器访问: http://localhost:3000
 
