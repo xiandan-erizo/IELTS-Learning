@@ -285,6 +285,12 @@ body {
     font-weight: 600;
 }
 
+.word-translation {
+    font-size: 1rem;
+    color: #2d3748;
+    margin-top: 5px;
+}
+
 /* Session Stats */
 .session-stats {
     display: flex;
