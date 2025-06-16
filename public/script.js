@@ -244,11 +244,52 @@ class WordDictationApp {
         this.playCurrentWord();
     }
 
-    playCurrentWord() {
+    async playCurrentWord() {
         if (!this.currentWord) return;
 
-        // 直接使用本地TTS，因为已经工作正常
-        this.playWithLocalTTS();
+        // 尝试从在线词典获取音频
+        const played = await this.playWithOnlineAudio();
+        if (!played) {
+            // 若获取失败则回退到浏览器内置TTS
+            this.playWithLocalTTS();
+        }
+    }
+
+    async playWithOnlineAudio() {
+        const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${this.currentWord}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Request failed');
+
+            const data = await response.json();
+            const phonetics = data[0]?.phonetics || [];
+            const entry = phonetics.find(p => p.audio);
+            if (!entry || !entry.audio) return false;
+
+            const audio = new Audio(entry.audio);
+            return await new Promise(resolve => {
+                this.playButton.disabled = true;
+                this.replayButton.disabled = true;
+
+                audio.onended = () => {
+                    this.playButton.disabled = false;
+                    this.replayButton.disabled = false;
+                    resolve(true);
+                };
+
+                audio.onerror = () => {
+                    this.playButton.disabled = false;
+                    this.replayButton.disabled = false;
+                    resolve(false);
+                };
+
+                audio.play().catch(() => resolve(false));
+            });
+        } catch (err) {
+            console.error('Online audio fetch failed', err);
+            return false;
+        }
     }
 
     playWithLocalTTS() {
