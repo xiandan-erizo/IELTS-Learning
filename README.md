@@ -16,17 +16,29 @@
 
 1. 确保已安装 Node.js (版本 14 或更高)
 
-2. 启动应用:
+2. 安装依赖:
+   ```bash
+   npm install
+   ```
+
+3. 复制 `.env.example` 为 `.env`，并填写以下变量：
+   - `GOOGLE_CLIENT_ID`：Google OAuth 客户端 ID
+   - `GOOGLE_CLIENT_SECRET`：Google OAuth 客户端密钥
+   - `SESSION_SECRET`：用于会话加密的随机字符串
+   - `PORT`：*(可选)* 服务器端口，默认 3000
+
+4. 启动应用:
    ```bash
    npm start
    ```
 
+5. 打开浏览器访问: http://localhost:3000
    启动前请设置以下环境变量用于 Google 登录：
    - `GOOGLE_CLIENT_ID`：Google OAuth 客户端 ID
    - `GOOGLE_CLIENT_SECRET`：Google OAuth 客户端密钥
    - `SESSION_SECRET`：用于会话加密的随机字符串
 
-3. 打开浏览器访问: http://localhost:3000
+
 
 ## 单词本格式
 

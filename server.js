@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,7 +10,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // 中间件
 app.use(cors());
