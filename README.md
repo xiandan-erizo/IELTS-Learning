@@ -33,6 +33,12 @@
    ```
 
 5. 打开浏览器访问: http://localhost:3000
+   启动前请设置以下环境变量用于 Google 登录：
+   - `GOOGLE_CLIENT_ID`：Google OAuth 客户端 ID
+   - `GOOGLE_CLIENT_SECRET`：Google OAuth 客户端密钥
+   - `SESSION_SECRET`：用于会话加密的随机字符串
+
+
 
 ## 单词本格式
 
