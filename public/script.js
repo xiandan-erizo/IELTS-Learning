@@ -18,6 +18,7 @@ class WordDictationApp {
         this.initializeElements();
         this.bindEvents();
         this.initializeVoices();
+        this.loadUserPreferences();
         this.checkAuth();
     }
 
@@ -273,6 +274,10 @@ class WordDictationApp {
             this.totalAttempts = 0;
             
             this.showSection(this.dictationSection);
+            
+            // 初始化翻译开关状态
+            this.translationHint.style.display = this.translationToggle.checked ? 'block' : 'none';
+            
             this.nextWord();
         } catch (error) {
             console.error('Error starting practice:', error);
@@ -574,6 +579,9 @@ class WordDictationApp {
             // 隐藏翻译提示
             this.translationHint.style.display = 'none';
         }
+        
+        // 保存用户偏好设置
+        this.saveUserPreferences();
     }
 
     async loadTranslationHint() {
@@ -914,6 +922,22 @@ class WordDictationApp {
         }
         
         return null;
+    }
+
+    loadUserPreferences() {
+        // 加载翻译开关状态
+        const showTranslation = localStorage.getItem('showTranslation');
+        if (showTranslation !== null) {
+            this.translationToggle.checked = showTranslation === 'true';
+        }
+        
+        // 初始化翻译提示显示状态
+        this.translationHint.style.display = this.translationToggle.checked ? 'block' : 'none';
+    }
+
+    saveUserPreferences() {
+        // 保存翻译开关状态
+        localStorage.setItem('showTranslation', this.translationToggle.checked);
     }
 }
 

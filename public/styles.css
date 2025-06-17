@@ -951,6 +951,24 @@ body {
         min-height: 44px;
         font-size: 16px; /* 防止iOS自动缩放 */
     }
+    
+    /* 翻译开关移动端优化 */
+    .translation-toggle {
+        margin-bottom: 20px;
+    }
+    
+    .toggle-label {
+        font-size: 1rem;
+    }
+    
+    .translation-hint {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .translation-text {
+        font-size: 0.95rem;
+    }
 }
 
 /* 横屏适配 */
