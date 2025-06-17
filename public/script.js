@@ -106,6 +106,11 @@ class WordDictationApp {
         this.wordTranslation = document.getElementById('wordTranslation');
         this.audioSourceHint = document.getElementById('audioSourceHint');
 
+        // Translation toggle elements
+        this.translationToggle = document.getElementById('translationToggle');
+        this.translationHint = document.getElementById('translationHint');
+        this.translationText = document.getElementById('translationText');
+
         // Progress elements
         this.progressFill = document.getElementById('progressFill');
         this.progressText = document.getElementById('progressText');
@@ -179,6 +184,9 @@ class WordDictationApp {
         this.replayButton.addEventListener('click', () => this.playCurrentWord());
         this.submitButton.addEventListener('click', () => this.submitAnswer());
         this.showAnswerButton.addEventListener('click', () => this.showAnswer());
+
+        // Translation toggle
+        this.translationToggle.addEventListener('change', () => this.toggleTranslation());
 
         // Input
         this.wordInput.addEventListener('keypress', (e) => {
@@ -289,6 +297,11 @@ class WordDictationApp {
         
         this.updateProgress();
         this.playCurrentWord();
+        
+        // 如果翻译开关开启，预加载翻译
+        if (this.translationToggle.checked) {
+            this.loadTranslationHint();
+        }
     }
 
     async playCurrentWord() {
@@ -548,6 +561,27 @@ class WordDictationApp {
             console.error('Translation fetch failed', err);
             return '';
         }
+    }
+
+    async toggleTranslation() {
+        if (this.translationToggle.checked) {
+            // 显示翻译提示
+            this.translationHint.style.display = 'block';
+            if (this.currentWord) {
+                await this.loadTranslationHint();
+            }
+        } else {
+            // 隐藏翻译提示
+            this.translationHint.style.display = 'none';
+        }
+    }
+
+    async loadTranslationHint() {
+        if (!this.currentWord) return;
+        
+        this.translationText.textContent = '翻译加载中...';
+        const translation = await this.getTranslation(this.currentWord);
+        this.translationText.textContent = translation || '暂无翻译';
     }
 
     showFeedback(message, className) {
