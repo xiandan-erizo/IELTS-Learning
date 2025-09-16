@@ -11,6 +11,14 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const WORDS_FILE_PATH = path.resolve(__dirname, 'output.txt');
+
+// In-memory cache for parsed words to avoid repeated file reads.
+let cachedUnits = [];
+let cachedWords = [];
+let lastWordsFileMtime = 0;
+let isWordCachePrimed = false;
+let lastWordCacheErrorMessage = null;
 
 // 中间件
 app.use(cors());
@@ -128,48 +136,92 @@ passport.use(
     )
 );
 
+function parseWordFile(content) {
+    const units = [];
+    let currentUnit = null;
+
+    for (const rawLine of content.split('\n')) {
+        const line = rawLine.trim();
+
+        if (!line) {
+            continue;
+        }
+
+        if (line.startsWith('#')) {
+            if (currentUnit && currentUnit.words.length > 0) {
+                units.push(currentUnit);
+            }
+
+            currentUnit = {
+                name: line.substring(1).trim(),
+                words: []
+            };
+        } else if (currentUnit) {
+            currentUnit.words.push(line);
+        }
+    }
+
+    if (currentUnit && currentUnit.words.length > 0) {
+        units.push(currentUnit);
+    }
+
+    return {
+        units,
+        words: units.flatMap(unit => unit.words)
+    };
+}
+
+function refreshWordCache() {
+    if (!fs.existsSync(WORDS_FILE_PATH)) {
+        const message = `Words file not found at ${WORDS_FILE_PATH}`;
+        if (lastWordCacheErrorMessage !== message) {
+            console.error('Error loading words:', message);
+            lastWordCacheErrorMessage = message;
+        }
+        cachedUnits = [];
+        cachedWords = [];
+        isWordCachePrimed = false;
+        lastWordsFileMtime = 0;
+        return;
+    }
+
+    try {
+        const stats = fs.statSync(WORDS_FILE_PATH);
+        if (!isWordCachePrimed || stats.mtimeMs !== lastWordsFileMtime) {
+            const data = fs.readFileSync(WORDS_FILE_PATH, 'utf8');
+            const { units, words } = parseWordFile(data);
+            cachedUnits = units;
+            cachedWords = words;
+            lastWordsFileMtime = stats.mtimeMs;
+            isWordCachePrimed = true;
+            lastWordCacheErrorMessage = null;
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (lastWordCacheErrorMessage !== message) {
+            console.error('Error loading words:', error);
+            lastWordCacheErrorMessage = message;
+        }
+        cachedUnits = [];
+        cachedWords = [];
+        isWordCachePrimed = false;
+        lastWordsFileMtime = 0;
+    }
+}
+
 // 读取单词本并按单元分组
 function loadWordsByUnits() {
-    try {
-        const data = fs.readFileSync('output.txt', 'utf8');
-        const lines = data.split('\n');
-        const units = [];
-        let currentUnit = null;
-        
-        for (const line of lines) {
-            const trimmedLine = line.trim();
-            
-            if (trimmedLine.startsWith('#')) {
-                // 新单元开始
-                if (currentUnit && currentUnit.words.length > 0) {
-                    units.push(currentUnit);
-                }
-                currentUnit = {
-                    name: trimmedLine.substring(1).trim(),
-                    words: []
-                };
-            } else if (trimmedLine && currentUnit) {
-                // 添加单词到当前单元
-                currentUnit.words.push(trimmedLine);
-            }
-        }
-        
-        // 添加最后一个单元
-        if (currentUnit && currentUnit.words.length > 0) {
-            units.push(currentUnit);
-        }
-        
-        return units;
-    } catch (error) {
-        console.error('Error loading words:', error);
-        return [];
-    }
+    refreshWordCache();
+    return cachedUnits.map(unit => ({
+        name: unit.name,
+        words: [...unit.words]
+    }));
 }
 
 // 获取所有单词（保留原有功能）
 function loadWords() {
-    const units = loadWordsByUnits();
-    return units.flatMap(unit => unit.words);
+    refreshWordCache();
+    return [...cachedWords];
 }
 
 // 生成会话ID
